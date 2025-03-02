@@ -285,13 +285,18 @@
                 width: 30,
                 height: 30,
                 color: '#5DADE2',
-                speed: 5
+                speed: 5,
+                borderDanger: 0,  // 경계 위험 타이머 추가
+                dangerColor: '#4dd637'  // 초기 색상
             };
             
             let balls = [];
+            let enemyLasers = []; // 적 레이저 배열 추가
             let animationId;
             let lastBallSpawn = 0;
+            let lastLaserSpawn = 0; // 레이저 스폰 타이머
             let spawnInterval = 1000; // 1초마다 공 생성
+            let laserSpawnInterval = 2000; // 레이저 스폰 간격 (밀리초)
             let difficulty = 1;
             
             // 마우스 위치 추적
@@ -302,13 +307,17 @@
                 score = 0;
                 gameOver = false;
                 balls = [];
+                enemyLasers = []; // 적 레이저 초기화
                 difficulty = 1;
                 player.x = canvas.width / 2;
+                player.borderDanger = 0; // 경계 위험 타이머 초기화
+                player.dangerColor = '#4dd637'; // 색상 초기화
                 document.getElementById('score').textContent = '점수: 0';
                 document.getElementById('game-over').style.display = 'none';
                 
                 // 게임 루프 시작
                 lastBallSpawn = Date.now();
+                lastLaserSpawn = Date.now(); // 레이저 타이머 초기화
                 animate();
                 
                 // 리더보드 불러오기
@@ -335,7 +344,70 @@
                 return colors[Math.floor(Math.random() * colors.length)];
             }
             
-            // 충돌 감지
+            // 적 레이저 생성 함수
+            function createEnemyLaser() {
+                // 난이도에 따라 레이저 생성 확률 증가
+                const laserChance = Math.min(0.7, 0.3 + (difficulty - 1) * 0.1);
+                
+                if (Math.random() > laserChance) return;
+                
+                // 레이저 위치 (랜덤)
+                const laserX = Math.random() * canvas.width;
+                
+                const laser = {
+                    x: laserX,
+                    y: 0, // 화면 상단에서 시작
+                    width: 5,
+                    height: canvas.height, // 캔버스 전체 높이로 설정
+                    speed: 0, // 움직이지 않음
+                    color: '#ff3333',
+                    createdAt: Date.now(), // 생성 시간 기록
+                    lifetime: 2000 // 2초 지속
+                };
+                
+                // 레이저 경고 효과 추가
+                // 0.5초 동안 깜빡이는 경고 효과
+                showLaserWarning(laserX, 500);
+                
+                // 경고 후 레이저 추가
+                setTimeout(() => {
+                    enemyLasers.push(laser);
+                }, 500);
+            }
+            
+            // 레이저 경고 효과 함수
+            function showLaserWarning(x, duration) {
+                const warningEl = document.createElement('div');
+                warningEl.style.position = 'absolute';
+                warningEl.style.top = '0';
+                warningEl.style.left = (x - 10) + 'px';
+                warningEl.style.width = '20px';
+                warningEl.style.height = canvas.height + 'px';
+                warningEl.style.backgroundColor = 'rgba(255, 0, 0, 0.3)';
+                warningEl.style.animation = 'blink 0.2s alternate infinite';
+                
+                // 깜빡임 애니메이션 스타일 추가
+                if (!document.getElementById('laser-warn-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'laser-warn-style';
+                    style.textContent = `
+                        @keyframes blink {
+                            from { opacity: 0.3; }
+                            to { opacity: 0.7; }
+                        }
+                    `;
+                    document.head.appendChild(style);
+                }
+                
+                document.getElementById('game-container').appendChild(warningEl);
+                
+                // 일정 시간 후 경고 제거
+                setTimeout(() => {
+                    warningEl.remove();
+                }, duration);
+            }
+            
+            // 충돌 감지 함수 수정 (레이저 충돌 추가)
             function checkCollision(ball) {
                 // 우주선과 공의 거리 계산
                 const dx = ball.x - player.x;
@@ -346,7 +418,83 @@
                 return distance < (ball.radius + 20);
             }
             
-            // 그리기 함수
+            // 플레이어와 레이저 충돌 검사
+            function checkLaserPlayerCollision(laser) {
+                // 레이저가 수직선이므로 플레이어의 x 좌표만 확인하면 됨
+                const laserLeft = laser.x - laser.width / 2;
+                const laserRight = laser.x + laser.width / 2;
+                
+                // 플레이어의 히트박스
+                const shipLeft = player.x - player.width / 2 - 5;
+                const shipRight = player.x + player.width / 2 + 5;
+                
+                // x축만 비교하여 충돌 체크
+                return !(laserRight < shipLeft || laserLeft > shipRight);
+            }
+            
+            // 경계 위험 업데이트
+            function updateBorderDanger() {
+                const borderThreshold = 40; // 경계에서 얼마나 떨어져 있으면 위험한지 (픽셀)
+                
+                // 플레이어가 경계에 있는지 확인
+                if (player.x < borderThreshold || player.x > canvas.width - borderThreshold) {
+                    // 경계에 있으면 위험도 증가
+                    player.borderDanger += 1/120; // 60프레임으로 가정하고 1초당 1 증가
+                    
+                    // 위험도에 따라 색상 변경 (초록->노랑->빨강)
+                    if (player.borderDanger < 0.5) {
+                        player.dangerColor = '#4dd637'; // 초록색 유지
+                    } else if (player.borderDanger < 0.8) {
+                        player.dangerColor = lerpColor('#4dd637', '#ffcc00', (player.borderDanger - 0.5) / 0.3);
+                    } else if (player.borderDanger < 1) {
+                        player.dangerColor = lerpColor('#ffcc00', '#ff3333', (player.borderDanger - 0.8) / 0.2);
+                    } else {
+                        // 1초 이상 경계에 있으면 게임 오버
+                        player.dangerColor = '#ff3333';
+                        explodePlayer();
+                        gameOver = true;
+                        document.getElementById('final-score').textContent = `최종 점수: ${isNaN(score) ? 0 : score}`;
+                        document.getElementById('game-over').style.display = 'block';
+                        cancelAnimationFrame(animationId);
+                        return;
+                    }
+                } else {
+                    // 경계에서 벗어나면 위험도 감소
+                    player.borderDanger = Math.max(0, player.borderDanger - 1/120);
+                    
+                    // 위험도가 낮으면 색상도 원래대로
+                    if (player.borderDanger < 0.3) {
+                        player.dangerColor = '#4dd637'; // 원래 초록색
+                    }
+                }
+            }
+            
+            // 색상 보간 함수
+            function lerpColor(a, b, amount) { 
+                const ah = parseInt(a.replace(/#/g, ''), 16),
+                      ar = ah >> 16, ag = (ah >> 8) & 0xff, ab = ah & 0xff,
+                      bh = parseInt(b.replace(/#/g, ''), 16),
+                      br = bh >> 16, bg = (bh >> 8) & 0xff, bb = bh & 0xff,
+                      rr = ar + amount * (br - ar),
+                      rg = ag + amount * (bg - ag),
+                      rb = ab + amount * (bb - ab);
+                return '#' + ((1 << 24) + (rr << 16) + (rg << 8) + rb | 0).toString(16).slice(1);
+            }
+            
+            // 플레이어 폭발 효과
+            function explodePlayer() {
+                // 여기서 폭발 효과 추가 구현
+                // 간단한 예: 캔버스에 빨간색 플래시
+                ctx.save();
+                ctx.fillStyle = 'rgba(255, 0, 0, 0.5)';
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                ctx.restore();
+                
+                // 폭발 효과음 재생 (선택적)
+                // playExplosionSound();
+            }
+            
+            // 그리기 함수 수정
             function draw() {
                 // 캔버스 지우기
                 ctx.clearRect(0, 0, canvas.width, canvas.height);
@@ -359,10 +507,10 @@
                 
                 // 우주선 그림자 효과
                 ctx.shadowBlur = 15;
-                ctx.shadowColor = '#4dd637';
+                ctx.shadowColor = player.dangerColor; // 위험도에 따라 색상 변경
                 
                 // 우주선 본체 (삼각형)
-                ctx.fillStyle = '#4dd637';
+                ctx.fillStyle = player.dangerColor; // 위험도에 따라 색상 변경
                 ctx.beginPath();
                 // 우주선의 앞부분(위)
                 ctx.moveTo(player.x, player.y - player.height / 2 - 10);
@@ -420,6 +568,37 @@
                 
                 ctx.restore();
                 
+                // 적 레이저 그리기
+                enemyLasers.forEach(laser => {
+                    ctx.save();
+                    
+                    // 레이저 효과 (그라데이션)
+                    const gradient = ctx.createLinearGradient(
+                        laser.x, 0,
+                        laser.x, canvas.height
+                    );
+                    gradient.addColorStop(0, 'rgba(255, 102, 102, ' + (laser.opacity || 1) + ')');
+                    gradient.addColorStop(0.5, 'rgba(255, 51, 51, ' + (laser.opacity || 1) + ')');
+                    gradient.addColorStop(1, 'rgba(153, 0, 0, ' + (laser.opacity || 1) + ')');
+                    
+                    ctx.fillStyle = gradient;
+                    ctx.shadowBlur = 15;
+                    ctx.shadowColor = '#ff6666';
+                    
+                    // 레이저 그리기
+                    ctx.beginPath();
+                    ctx.roundRect(laser.x - laser.width / 2, 0, laser.width, canvas.height, 2);
+                    ctx.fill();
+                    
+                    // 레이저 후광 효과
+                    ctx.globalAlpha = 0.3 * (laser.opacity || 1);
+                    ctx.beginPath();
+                    ctx.roundRect(laser.x - laser.width * 2, 0, laser.width * 4, canvas.height, 2);
+                    ctx.fill();
+                    
+                    ctx.restore();
+                });
+                
                 // 공 그리기 - 기존 코드 유지
                 balls.forEach(ball => {
                     ctx.save();
@@ -464,10 +643,44 @@
                 });
             }
             
-            // 업데이트 함수
+            // 업데이트 함수 수정
             function update() {
                 // 플레이어 마우스 따라가기
                 player.x += (mouseX - player.x) * 0.1;
+                
+                // 경계 위험 업데이트
+                updateBorderDanger();
+                
+                // 적 레이저 생성
+                const currentTime = Date.now();
+                if (currentTime - lastLaserSpawn > laserSpawnInterval) {
+                    createEnemyLaser();
+                    lastLaserSpawn = currentTime;
+                }
+                
+                // 적 레이저 업데이트
+                for (let i = enemyLasers.length - 1; i >= 0; i--) {
+                    // 레이저 지속 시간 확인
+                    const laserLifetime = currentTime - enemyLasers[i].createdAt;
+                    
+                    // 지속 시간이 지났으면 제거
+                    if (laserLifetime >= enemyLasers[i].lifetime) {
+                        enemyLasers.splice(i, 1);
+                        continue;
+                    }
+                    
+                    // 지속 시간에 따른 투명도 조절 (점점 사라지게)
+                    enemyLasers[i].opacity = 1 - (laserLifetime / enemyLasers[i].lifetime) * 0.7;
+                    
+                    // 플레이어와 충돌 체크
+                    if (checkLaserPlayerCollision(enemyLasers[i])) {
+                        gameOver = true;
+                        document.getElementById('final-score').textContent = `최종 점수: ${isNaN(score) ? 0 : score}`;
+                        document.getElementById('game-over').style.display = 'block';
+                        cancelAnimationFrame(animationId);
+                        return;
+                    }
+                }
                 
                 // 공 움직이기 및 충돌 체크
                 for (let i = balls.length - 1; i >= 0; i--) {
@@ -498,10 +711,9 @@
                 }
                 
                 // 새로운 공 생성
-                const now = Date.now();
-                if (now - lastBallSpawn > spawnInterval) {
+                if (currentTime - lastBallSpawn > spawnInterval) {
                     createBall();
-                    lastBallSpawn = now;
+                    lastBallSpawn = currentTime;
                 }
             }
             
