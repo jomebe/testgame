@@ -32,13 +32,23 @@
         }
         #score {
             color: white;
-            font-size: 24px;
-            margin-bottom: 15px;
+            font-size: 28px;
             text-align: center;
             font-weight: bold;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.5);
+            text-shadow: 0 2px 5px rgba(0, 0, 0, 0.7);
             font-family: 'Jua', sans-serif;
             letter-spacing: 1px;
+            position: absolute;
+            top: 15px;
+            left: 0;
+            right: 0;
+            z-index: 10;
+            background-color: rgba(0, 0, 0, 0.6);
+            padding: 8px 15px;
+            border-radius: 20px;
+            margin: 0 auto;
+            width: 150px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.5);
         }
         #game-over {
             position: absolute;
@@ -209,16 +219,190 @@
         .debug-border {
             border: 1px solid red !important;
         }
+        #auth-container {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.8);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+        
+        .auth-form {
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
+            padding: 30px;
+            border-radius: 15px;
+            width: 350px;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+            color: white;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        
+        .auth-form h2 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4dd637;
+            font-family: 'Jua', sans-serif;
+        }
+        
+        .form-group {
+            margin-bottom: 15px;
+        }
+        
+        .form-group label {
+            display: block;
+            margin-bottom: 5px;
+            font-size: 14px;
+        }
+        
+        .form-group input {
+            width: 100%;
+            padding: 12px;
+            border-radius: 8px;
+            border: none;
+            background: rgba(255, 255, 255, 0.9);
+            box-sizing: border-box;
+        }
+        
+        .form-actions {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        
+        .form-actions button {
+            flex: 1;
+        }
+        
+        .toggle-text {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 15px;
+            color: #ccc;
+        }
+        
+        .toggle-text span {
+            cursor: pointer;
+            text-decoration: underline;
+        }
+        
+        .toggle-text span:hover {
+            color: #4dd637;
+        }
+        
+        #guest-play-btn {
+            width: 100%;
+            background: linear-gradient(to right, #555, #444);
+            margin-top: 15px;
+        }
+        
+        #user-info {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background: rgba(0, 0, 0, 0.6);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            z-index: 10;
+        }
+        
+        #logout-btn {
+            background: transparent;
+            color: #ff5e5e;
+            padding: 5px 10px;
+            margin-left: 10px;
+            font-size: 12px;
+            box-shadow: none;
+        }
+        
+        #logout-btn:hover {
+            background: rgba(255, 94, 94, 0.2);
+            transform: none;
+        }
+        
+        .auth-message {
+            color: #ff5e5e;
+            font-size: 14px;
+            text-align: center;
+            min-height: 20px;
+            margin-bottom: 10px;
+        }
+        
+        .social-login {
+            margin-top: 20px;
+            text-align: center;
+            position: relative;
+        }
+        
+        .social-login::before {
+            content: "또는";
+            display: block;
+            text-align: center;
+            color: #ccc;
+            font-size: 14px;
+            margin-bottom: 15px;
+            position: relative;
+        }
+        
+        .social-login::after {
+            content: "";
+            display: block;
+            height: 1px;
+            background: rgba(255, 255, 255, 0.1);
+            position: absolute;
+            top: 9px;
+            left: 0;
+            right: 0;
+            z-index: -1;
+        }
+        
+        .social-login::before {
+            background: linear-gradient(to bottom, #1a1a2e, #16213e);
+            display: inline-block;
+            padding: 0 10px;
+        }
+        
+        .google-btn {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            padding: 12px;
+            background: white;
+            color: #333;
+            border-radius: 8px;
+            font-weight: bold;
+            transition: all 0.3s;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+        }
+        
+        .google-btn:hover {
+            background: #f5f5f5;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+        }
+        
+        .google-btn img {
+            width: 24px;
+            height: 24px;
+            margin-right: 10px;
+        }
     </style>
 </head>
 <body>
     <div id="game-container">
-        <div id="score">점수: 0</div>
         <canvas id="gameCanvas" width="480" height="600"></canvas>
+        <div id="score">점수: 0</div>
         <div id="game-over">
             <p class="pulse-text">게임 오버!</p>
             <p id="final-score">최종 점수: 0</p>
-            <input type="text" id="name-input" placeholder="닉네임을 입력하세요" maxlength="15">
             <button id="submit-score">점수 등록하기</button>
             <button id="restart-button">다시 시작</button>
         </div>
@@ -231,9 +415,104 @@
         </div>
     </div>
 
+    <!-- 기존 game-container 위에 추가 -->
+    <div id="auth-container" style="display: none;">
+        <div class="auth-form">
+            <h2 id="auth-title">로그인</h2>
+            <div id="auth-message" class="auth-message"></div>
+            
+            <div class="form-group">
+                <label for="email">이메일</label>
+                <input type="email" id="email" placeholder="이메일을 입력하세요">
+            </div>
+            
+            <div class="form-group">
+                <label for="password">비밀번호</label>
+                <input type="password" id="password" placeholder="비밀번호를 입력하세요">
+            </div>
+            
+            <div class="form-group" id="nickname-group" style="display: none;">
+                <label for="nickname">닉네임</label>
+                <input type="text" id="nickname" placeholder="게임에서 사용할 닉네임" maxlength="15">
+            </div>
+            
+            <div class="form-actions">
+                <button id="login-btn">로그인</button>
+                <button id="register-btn">회원가입</button>
+            </div>
+            
+            <div class="social-login">
+                <button id="google-login-btn" class="google-btn">
+                    <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="구글 로고">
+                    구글로 로그인
+                </button>
+            </div>
+            
+            <p class="toggle-text">
+                <span id="toggle-register">계정이 없으신가요? 회원가입</span>
+                <span id="toggle-login" style="display: none;">이미 계정이 있으신가요? 로그인</span>
+            </p>
+            
+            <button id="guest-play-btn">손님으로 플레이</button>
+        </div>
+    </div>
+
+    <!-- 유저 정보 표시 영역 추가 -->
+    <div id="user-info" style="display: none;">
+        <span id="user-nickname">손님</span>
+        <button id="logout-btn">로그아웃</button>
+    </div>
+
     <!-- Firebase SDK 업데이트 -->
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
     <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+
+    <div id="firebase-rules-modal" style="display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.8); z-index: 2000;">
+        <div style="position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); background: #1a1a2e; padding: 20px; border-radius: 10px; width: 80%; max-width: 600px; color: white;">
+            <h3 style="color: #4dd637;">Firebase 보안 규칙 설정 안내</h3>
+            <p>Firebase 콘솔에서 다음과 같이 보안 규칙을 설정해주세요:</p>
+            <pre style="background: #222; padding: 15px; overflow: auto; border-radius: 5px; text-align: left;">
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /users/{userId} {
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+    }
+    match /scores/{scoreId} {
+      allow read: if true;
+      allow write: if request.auth != null;
+    }
+  }
+}
+            </pre>
+            <p>설정 방법:</p>
+            <ol style="text-align: left;">
+                <li>Firebase 콘솔 접속</li>
+                <li>왼쪽 메뉴에서 "Firestore Database" 선택</li>
+                <li>"규칙" 탭 클릭</li>
+                <li>위 규칙 복사하여 붙여넣기</li>
+                <li>"게시" 버튼 클릭</li>
+            </ol>
+            <button id="close-rules-modal" style="padding: 10px 20px; background: #4CAF50; border: none; color: white; border-radius: 5px; cursor: pointer;">확인</button>
+        </div>
+    </div>
+
+    <div class="domain-instruction" style="background: #1a1a2e; padding: 20px; border-radius: 10px; margin: 20px auto; max-width: 600px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); display: none;">
+        <h3 style="color: #4dd637; text-align: center;">Firebase 도메인 승인 방법</h3>
+        <ol style="text-align: left; line-height: 1.6;">
+            <li>Firebase 콘솔에 로그인: <a href="https://console.firebase.google.com/" target="_blank" style="color: #4dd637;">https://console.firebase.google.com/</a></li>
+            <li>프로젝트 'testgame-349b6'를 선택합니다</li>
+            <li>왼쪽 메뉴에서 "Authentication" 클릭</li>
+            <li>"Settings" 탭 클릭</li>
+            <li>"Authorized domains" 섹션 찾기</li>
+            <li>"Add domain" 버튼 클릭</li>
+            <li>현재 도메인 입력: <span id="current-domain" style="background: #333; padding: 3px 6px; border-radius: 4px;"></span></li>
+            <li>"Add" 버튼 클릭</li>
+        </ol>
+        <p style="margin-top: 15px;">위 단계를 완료한 후 페이지를 새로고침하면 구글 로그인이 작동합니다.</p>
+        <button id="close-domain-instruction" style="background: #4dd637; border: none; color: black; padding: 8px 15px; border-radius: 5px; cursor: pointer; display: block; margin: 10px auto;">이해했습니다</button>
+    </div>
 
     <script>
         // Firebase 초기화
@@ -241,7 +520,7 @@
             apiKey: "AIzaSyDvpN35A5K4FPWfCJVGSa6OV_KRjH6cpSQ",
             authDomain: "testgame-349b6.firebaseapp.com",
             projectId: "testgame-349b6",
-            storageBucket: "testgame-349b6.appspot.com", // .firebasestorage.app에서 .appspot.com으로 수정
+            storageBucket: "testgame-349b6.appspot.com",
             messagingSenderId: "123634890932",
             appId: "1:123634890932:web:ea8d5d3b3dfd133e963fe1",
             measurementId: "G-P1ZXB7L57W"
@@ -251,25 +530,225 @@
         try {
             firebase.initializeApp(firebaseConfig);
             const db = firebase.firestore();
+            const auth = firebase.auth();
             console.log("Firebase 초기화 성공");
             
-            // Firestore 설정 - 병합 옵션 추가 (경고 해결)
-            db.settings({
-                cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
-                ignoreUndefinedProperties: true,
-                merge: true  // 경고 해결을 위해 추가
+            // 현재 로그인 상태
+            let currentUser = null;
+            let isGuestMode = false;
+            
+            // 페이지 로드 시 인증 상태 확인
+            auth.onAuthStateChanged(function(user) {
+                if (user) {
+                    // 사용자 로그인 상태
+                    currentUser = user;
+                    
+                    // 닉네임 가져오기
+                    db.collection('users').doc(user.uid).get()
+                        .then((doc) => {
+                            if (doc.exists && doc.data().nickname) {
+                                // 유저 정보 표시
+                                document.getElementById('user-nickname').textContent = doc.data().nickname;
+                                document.getElementById('user-info').style.display = 'flex';
+                                
+                                // 로그인 화면 숨기기
+                                document.getElementById('auth-container').style.display = 'none';
+                            } else {
+                                // 닉네임이 없으면 닉네임 설정 요청
+                                showNicknamePrompt();
+                            }
+                        })
+                        .catch((error) => {
+                            console.error("사용자 정보 가져오기 오류:", error);
+                        });
+                } else {
+                    // 로그아웃 상태
+                    currentUser = null;
+                    
+                    if (!isGuestMode) {
+                        // 로그인 화면 표시
+                        document.getElementById('auth-container').style.display = 'flex';
+                        document.getElementById('user-info').style.display = 'none';
+                    }
+                }
             });
             
-            // 오프라인 지원 활성화 - 권장 방법으로 수정
-            try {
-                // 이전 방식 대신 캐시 설정 사용
-                db.enablePersistence({
-                    synchronizeTabs: true
-                }).catch(function(err) {
-                    console.log("오프라인 지원 활성화 오류:", err);
-                });
-            } catch (e) {
-                console.log("지속성 설정 오류:", e);
+            // 닉네임 설정 프롬프트
+            function showNicknamePrompt() {
+                document.getElementById('auth-container').style.display = 'flex';
+                document.getElementById('auth-title').textContent = '닉네임 설정';
+                document.getElementById('email').parentElement.style.display = 'none';
+                document.getElementById('password').parentElement.style.display = 'none';
+                document.getElementById('nickname-group').style.display = 'block';
+                document.getElementById('login-btn').style.display = 'none';
+                document.getElementById('register-btn').textContent = '닉네임 설정';
+                document.getElementById('toggle-register').style.display = 'none';
+                document.getElementById('toggle-login').style.display = 'none';
+                document.getElementById('guest-play-btn').style.display = 'none';
+                document.getElementById('google-login-btn').parentElement.style.display = 'none';
+                
+                // 사용자가 구글 로그인을 통해 들어왔을 경우 기본 닉네임 설정
+                if (currentUser && currentUser.displayName) {
+                    document.getElementById('nickname').value = currentUser.displayName;
+                }
+                
+                // 닉네임 설정 버튼 이벤트
+                document.getElementById('register-btn').onclick = function() {
+                    const nickname = document.getElementById('nickname').value.trim();
+                    if (!nickname) {
+                        document.getElementById('auth-message').textContent = '닉네임을 입력해주세요';
+                        return;
+                    }
+                    
+                    // 닉네임 중복 체크
+                    checkNicknameAvailability(nickname)
+                        .then(isAvailable => {
+                            if (isAvailable) {
+                                // 닉네임 저장
+                                db.collection('users').doc(currentUser.uid).set({
+                                    nickname: nickname,
+                                    email: currentUser.email,
+                                    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                }, { merge: true })
+                                .then(() => {
+                                    document.getElementById('user-nickname').textContent = nickname;
+                                    document.getElementById('user-info').style.display = 'flex';
+                                    document.getElementById('auth-container').style.display = 'none';
+                                })
+                                .catch((error) => {
+                                    document.getElementById('auth-message').textContent = '오류: ' + error.message;
+                                });
+                            } else {
+                                document.getElementById('auth-message').textContent = '이미 사용 중인 닉네임입니다';
+                            }
+                        })
+                        .catch(error => {
+                            document.getElementById('auth-message').textContent = '오류: ' + error.message;
+                        });
+                };
+            }
+            
+            // 닉네임 중복 확인
+            function checkNicknameAvailability(nickname) {
+                return db.collection('users')
+                    .where('nickname', '==', nickname)
+                    .get()
+                    .then(snapshot => {
+                        return snapshot.empty; // true이면 사용 가능
+                    });
+            }
+            
+            // 로그인 버튼 이벤트
+            document.getElementById('login-btn').addEventListener('click', function() {
+                const email = document.getElementById('email').value;
+                const password = document.getElementById('password').value;
+                
+                if (!email || !password) {
+                    document.getElementById('auth-message').textContent = '이메일과 비밀번호를 입력해주세요';
+                    return;
+                }
+                
+                auth.signInWithEmailAndPassword(email, password)
+                    .then((userCredential) => {
+                        // 로그인 성공
+                        document.getElementById('auth-message').textContent = '';
+                    })
+                    .catch((error) => {
+                        document.getElementById('auth-message').textContent = getKoreanErrorMessage(error.code);
+                    });
+            });
+            
+            // 회원가입 버튼 이벤트
+            document.getElementById('register-btn').addEventListener('click', function() {
+                if (document.getElementById('auth-title').textContent === '회원가입') {
+                    const email = document.getElementById('email').value;
+                    const password = document.getElementById('password').value;
+                    const nickname = document.getElementById('nickname').value.trim();
+                    
+                    if (!email || !password || !nickname) {
+                        document.getElementById('auth-message').textContent = '모든 필드를 입력해주세요';
+                        return;
+                    }
+                    
+                    // 닉네임 중복 체크
+                    checkNicknameAvailability(nickname)
+                        .then(isAvailable => {
+                            if (isAvailable) {
+                                // 회원가입 진행
+                                auth.createUserWithEmailAndPassword(email, password)
+                                    .then((userCredential) => {
+                                        // 회원가입 성공 시 닉네임 저장
+                                        db.collection('users').doc(userCredential.user.uid).set({
+                                            nickname: nickname,
+                                            email: email,
+                                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                        });
+                                    })
+                                    .catch((error) => {
+                                        document.getElementById('auth-message').textContent = getKoreanErrorMessage(error.code);
+                                    });
+                            } else {
+                                document.getElementById('auth-message').textContent = '이미 사용 중인 닉네임입니다';
+                            }
+                        });
+                }
+            });
+            
+            // 손님으로 플레이 버튼
+            document.getElementById('guest-play-btn').addEventListener('click', function() {
+                isGuestMode = true;
+                document.getElementById('auth-container').style.display = 'none';
+                document.getElementById('user-nickname').textContent = '손님';
+                document.getElementById('user-info').style.display = 'flex';
+            });
+            
+            // 로그아웃 버튼
+            document.getElementById('logout-btn').addEventListener('click', function() {
+                auth.signOut()
+                    .then(() => {
+                        isGuestMode = false;
+                        document.getElementById('auth-container').style.display = 'flex';
+                        document.getElementById('user-info').style.display = 'none';
+                    })
+                    .catch((error) => {
+                        console.error('로그아웃 오류:', error);
+                    });
+            });
+            
+            // 토글 버튼 - 회원가입 폼으로 전환
+            document.getElementById('toggle-register').addEventListener('click', function() {
+                document.getElementById('auth-title').textContent = '회원가입';
+                document.getElementById('nickname-group').style.display = 'block';
+                document.getElementById('toggle-register').style.display = 'none';
+                document.getElementById('toggle-login').style.display = 'inline';
+                document.getElementById('auth-message').textContent = '';
+            });
+            
+            // 토글 버튼 - 로그인 폼으로 전환
+            document.getElementById('toggle-login').addEventListener('click', function() {
+                document.getElementById('auth-title').textContent = '로그인';
+                document.getElementById('nickname-group').style.display = 'none';
+                document.getElementById('toggle-register').style.display = 'inline';
+                document.getElementById('toggle-login').style.display = 'none';
+                document.getElementById('auth-message').textContent = '';
+            });
+            
+            // 에러 메시지 한글화
+            function getKoreanErrorMessage(errorCode) {
+                switch(errorCode) {
+                    case 'auth/user-not-found':
+                        return '존재하지 않는 이메일입니다';
+                    case 'auth/wrong-password':
+                        return '비밀번호가 올바르지 않습니다';
+                    case 'auth/email-already-in-use':
+                        return '이미 사용 중인 이메일입니다';
+                    case 'auth/weak-password':
+                        return '비밀번호는 6자 이상이어야 합니다';
+                    case 'auth/invalid-email':
+                        return '올바르지 않은 이메일 형식입니다';
+                    default:
+                        return '오류가 발생했습니다: ' + errorCode;
+                }
             }
             
             // 캔버스 설정
@@ -319,6 +798,11 @@
                 lastBallSpawn = Date.now();
                 lastLaserSpawn = Date.now(); // 레이저 타이머 초기화
                 animate();
+                
+                // 로그인 체크
+                if (!currentUser && !isGuestMode) {
+                    document.getElementById('auth-container').style.display = 'flex';
+                }
                 
                 // 리더보드 불러오기
                 loadLeaderboard();
@@ -516,7 +1000,7 @@
                 ctx.moveTo(player.x, player.y - player.height / 2 - 10);
                 // 우주선의 오른쪽 날개
                 ctx.lineTo(player.x + player.width / 2 + 5, player.y + player.height / 2);
-                // 우주선의 아랫부분
+                // 우주선의 아랫분
                 ctx.lineTo(player.x - player.width / 2 - 5, player.y + player.height / 2);
                 ctx.closePath();
                 ctx.fill();
@@ -756,14 +1240,6 @@
                     </div>
                 `;
                 
-                // 스타일 추가
-                if (!document.getElementById('spinner-style')) {
-                    const style = document.createElement('style');
-                    style.id = 'spinner-style';
-                    style.textContent = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
-                    document.head.appendChild(style);
-                }
-                
                 try {
                     db.collection('scores')
                         .orderBy('score', 'desc')
@@ -781,14 +1257,16 @@
                                 const item = document.createElement('div');
                                 item.className = 'leaderboard-item';
                                 
-                                // 순위 표시 제거, 이름만 표시
-                                const nameText = String(data.name || '익명');
+                                // 현재 로그인한 사용자의 점수인지 확인
+                                if (currentUser && data.userId === currentUser.uid) {
+                                    item.style.backgroundColor = 'rgba(77, 214, 55, 0.2)';
+                                }
+                                
+                                const nameText = String(data.nickname || '익명');
                                 const scoreValue = isNaN(Number(data.score)) ? 0 : Number(data.score);
                                 
-                                item.innerHTML = '';
-                                
                                 const nameSpan = document.createElement('span');
-                                nameSpan.textContent = nameText;  // 순위(N.) 제거
+                                nameSpan.textContent = nameText;
                                 
                                 const scoreSpan = document.createElement('span');
                                 scoreSpan.textContent = scoreValue + '점';
@@ -801,27 +1279,8 @@
                         })
                         .catch((error) => {
                             console.error('리더보드 로딩 오류:', error);
-                            
-                            if (error.code === 'permission-denied') {
-                                leaderboardItems.innerHTML = `
-                                    <p style="color: #ff6b6b;">Firebase 권한 오류</p>
-                                    <p style="font-size: 0.9em;">Firebase 콘솔에서 보안 규칙을 다음과 같이 변경해주세요:</p>
-                                    <pre style="background: #333; padding: 10px; font-size: 0.8em; overflow: auto;">
-rules_version = '2';
-service cloud.firestore {
-  match /databases/{database}/documents {
-    match /scores/{document=**} {
-      allow read, write: if true;
-    }
-  }
-}
-                                    </pre>
-                                    <p style="font-size: 0.8em;">그동안 로컬 리더보드를 사용합니다:</p>
-                                `;
-                                loadLocalLeaderboard();
-                            } else {
-                                leaderboardItems.innerHTML = '<p>리더보드를 불러오는 중 오류가 발생했습니다.</p>';
-                            }
+                            leaderboardItems.innerHTML = '<p>리더보드를 불러오는 중 오류가 발생했습니다.</p>';
+                            loadLocalLeaderboard();
                         });
                 } catch (error) {
                     console.error('Firestore 쿼리 실행 오류:', error);
@@ -830,13 +1289,8 @@ service cloud.firestore {
                 }
             }
             
-            // 점수 저장 함수 수정 - 중복 이름 체크 추가
-            function saveScore(name, score) {
-                if (!name.trim()) {
-                    alert('닉네임을 입력해주세요!');
-                    return;
-                }
-                
+            // 점수 저장 함수 수정 - 로그인 사용자 정보 활용
+            function saveScore(score) {
                 // 점수 확실하게 숫자로 변환 후 유효성 검사
                 const scoreNum = Number(score);
                 if (isNaN(scoreNum)) {
@@ -844,136 +1298,104 @@ service cloud.firestore {
                     return;
                 }
                 
-                const trimmedName = String(name.trim());
-                
-                try {
-                    // 로컬 저장소에서 이름 중복 체크
-                    let localScores = [];
-                    try {
-                        localScores = JSON.parse(localStorage.getItem('ballGameScores') || '[]');
-                        if (!Array.isArray(localScores)) {
-                            localScores = [];
-                        }
-                        
-                        // 로컬 저장소에서 이름 중복 체크
-                        const nameExists = localScores.some(entry => 
-                            String(entry.name).toLowerCase() === trimmedName.toLowerCase()
-                        );
-                        
-                        if (nameExists) {
-                            alert('이미 사용 중인 닉네임입니다. 다른 닉네임을 사용해주세요.');
-                            return;
-                        }
-                    } catch (e) {
-                        console.error('로컬 스토리지 파싱 오류:', e);
-                        localScores = [];
-                    }
-                    
-                    // Firebase에서 이름 중복 체크
-                    db.collection('scores')
-                        .where('name', '==', trimmedName)
-                        .get()
-                        .then((querySnapshot) => {
-                            if (!querySnapshot.empty) {
-                                alert('이미 사용 중인 닉네임입니다. 다른 닉네임을 사용해주세요.');
-                                return;
-                            }
-                            
-                            // 중복이 없으면 저장 진행
-                            const scoreData = {
-                                name: trimmedName,
-                                score: scoreNum,
-                                timestamp: new Date().toISOString()
-                            };
-                            
-                            // 로컬 백업 저장
-                            localScores.push(scoreData);
-                            localStorage.setItem('ballGameScores', JSON.stringify(localScores));
-                            
-                            // Firestore에 저장 시도
-                            db.collection('scores').add({
-                                name: trimmedName,
-                                score: scoreNum,
-                                timestamp: firebase.firestore.FieldValue.serverTimestamp()
-                            })
-                            .then(() => {
-                                alert('점수가 저장되었습니다!');
-                                document.getElementById('name-input').value = '';
-                                loadLeaderboard();
-                            })
-                            .catch((error) => {
-                                console.error('점수 저장 오류:', error);
-                                
-                                if (error.code === 'permission-denied') {
-                                    alert('권한 오류: Firebase 보안 규칙을 확인해주세요. 점수는 로컬에 저장되었습니다.');
-                                    loadLocalLeaderboard();
-                                } else {
-                                    alert('점수 저장 중 오류가 발생했습니다. 오류: ' + error.message);
-                                }
-                            });
-                        })
-                        .catch((error) => {
-                            console.error('이름 중복 체크 오류:', error);
-                            alert('이름 중복 체크 중 오류가 발생했습니다. 오프라인 모드로 전환합니다.');
-                            
-                            // Firebase 접근 오류 시 로컬 저장소만 확인
-                            saveScoreLocally(trimmedName, scoreNum, localScores);
-                        });
-                } catch (error) {
-                    console.error('Firestore 저장 오류:', error);
-                    alert('데이터베이스 연결에 문제가 있습니다. 로컬 저장으로 전환합니다.');
-                    
-                    // Firebase 초기화 오류 시 로컬 저장 함수 호출
-                    saveScoreLocally(trimmedName, scoreNum, []);
-                }
-            }
-            
-            // 로컬 저장 전용 함수 추가
-            function saveScoreLocally(name, score, existingScores) {
-                // 로컬에서만 이름 중복 체크
-                let localScores = existingScores || [];
-                if (!Array.isArray(localScores)) {
-                    try {
-                        localScores = JSON.parse(localStorage.getItem('ballGameScores') || '[]');
-                        if (!Array.isArray(localScores)) {
-                            localScores = [];
-                        }
-                    } catch (e) {
-                        localScores = [];
-                    }
-                }
-                
-                // 이름 중복 체크
-                const nameExists = localScores.some(entry => 
-                    String(entry.name).toLowerCase() === name.toLowerCase()
-                );
-                
-                if (nameExists) {
-                    alert('이미 사용 중인 닉네임입니다. 다른 닉네임을 사용해주세요.');
+                // 손님 모드 체크
+                if (isGuestMode) {
+                    alert('로그인한 사용자만 점수를 저장할 수 있습니다.');
                     return;
                 }
                 
-                // 점수 저장
-                const scoreData = {
-                    name: name,
-                    score: score,
-                    timestamp: new Date().toISOString()
-                };
+                // 로그인 체크
+                if (!currentUser) {
+                    alert('점수를 저장하려면 로그인이 필요합니다.');
+                    document.getElementById('auth-container').style.display = 'flex';
+                    return;
+                }
                 
-                localScores.push(scoreData);
-                localStorage.setItem('ballGameScores', JSON.stringify(localScores));
-                
-                alert('오프라인 모드: 점수가 로컬에 저장되었습니다!');
-                document.getElementById('name-input').value = '';
-                loadLocalLeaderboard();
+                try {
+                    // 닉네임 가져오기
+                    db.collection('users').doc(currentUser.uid).get()
+                        .then((doc) => {
+                            if (doc.exists && doc.data().nickname) {
+                                const nickname = doc.data().nickname;
+                                
+                                // 점수 저장 데이터
+                                const scoreData = {
+                                    userId: currentUser.uid,
+                                    nickname: nickname,
+                                    score: scoreNum,
+                                    timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                                };
+                                
+                                // 사용자별 최고 점수 체크 (인덱스 필요 없는 방식으로 변경)
+                                db.collection('scores')
+                                    .where('userId', '==', currentUser.uid)
+                                    .get()
+                                    .then((querySnapshot) => {
+                                        let highestScore = 0;
+                                        
+                                        // 모든 점수를 가져와서 클라이언트에서 최고 점수 계산
+                                        querySnapshot.forEach(doc => {
+                                            const docScore = doc.data().score || 0;
+                                            if (docScore > highestScore) {
+                                                highestScore = docScore;
+                                            }
+                                        });
+                                        
+                                        let shouldSave = true;
+                                        
+                                        // 기존 점수가 있는지 확인
+                                        if (highestScore > 0) {
+                                            // 현재 점수가 최고 점수보다 높으면 저장
+                                            if (scoreNum <= highestScore) {
+                                                alert(`현재 최고 점수(${highestScore}점)보다 낮아 저장되지 않았습니다.`);
+                                                shouldSave = false;
+                                            }
+                                        }
+                                        
+                                        if (shouldSave) {
+                                            // Firestore에 저장
+                                            db.collection('scores').add(scoreData)
+                                            .then(() => {
+                                                alert('점수가 성공적으로 저장되었습니다!');
+                                                loadLeaderboard();
+                                            })
+                                            .catch((error) => {
+                                                console.error('점수 저장 오류:', error);
+                                                alert('점수 저장 중 오류가 발생했습니다. 오류: ' + error.message);
+                                                // 오류 발생 시 로컬에 저장
+                                                saveScoreLocally(scoreNum);
+                                            });
+                                        }
+                                    })
+                                    .catch((error) => {
+                                        console.error('최고 점수 체크 오류:', error);
+                                        alert('점수 확인 중 오류가 발생했습니다. 로컬에 저장합니다.');
+                                        // 오류 발생 시 로컬에 저장
+                                        saveScoreLocally(scoreNum);
+                                    });
+                            } else {
+                                // 닉네임이 없으면 설정 요청 또는 로컬 저장
+                                alert('닉네임 설정이 필요합니다. 임시 저장합니다.');
+                                saveScoreLocally(scoreNum);
+                            }
+                        })
+                        .catch((error) => {
+                            console.error('사용자 정보 조회 오류:', error);
+                            alert('사용자 정보를 불러오는 중 오류가 발생했습니다. 로컬에 저장합니다.');
+                            saveScoreLocally(scoreNum);
+                        });
+                } catch (error) {
+                    console.error('Firestore 저장 오류:', error);
+                    alert('데이터베이스 연결에 문제가 있습니다. 로컬에 저장합니다.');
+                    saveScoreLocally(scoreNum);
+                }
             }
             
-            // 점수 제출 버튼 리스너 추가
+            // 점수 제출 버튼 리스너 수정
             document.getElementById('submit-score').addEventListener('click', () => {
-                const name = document.getElementById('name-input').value;
                 // NaN 체크 추가
                 const finalScore = isNaN(score) ? 0 : score;
-                saveScore(name, finalScore);
+                saveScore(finalScore);
             });
             
             // 오프라인 모드 전환 버튼 이벤트 리스너
@@ -1004,6 +1426,114 @@ service cloud.firestore {
                     loadLocalLeaderboard();
                 }
             });
+            
+            // 구글 로그인 기능 복구
+            // Firebase 초기화 코드 뒤에 추가해야 합니다.
+            try {
+                // 구글 로그인 제공자 설정
+                const googleProvider = new firebase.auth.GoogleAuthProvider();
+                googleProvider.setCustomParameters({
+                    prompt: 'select_account'
+                });
+                
+                // 구글 로그인 버튼 이벤트 수정
+                document.getElementById('google-login-btn').addEventListener('click', function() {
+                    document.getElementById('auth-message').textContent = '구글 로그인 진행 중...';
+                    
+                    // Firebase 콘솔로 바로 이동할 수 있는 링크 표시
+                    const authDomain = firebase.app().options.authDomain;
+                    document.getElementById('auth-message').innerHTML = `
+                        <span>구글 로그인 진행 중...</span><br>
+                        <small style="display: block; margin-top: 8px;">문제가 발생하면 <a href="https://console.firebase.google.com/project/testgame-349b6/authentication/settings" target="_blank" style="color: #4dd637; text-decoration: underline;">Firebase 콘솔</a>에서 도메인 '${window.location.hostname}'을 추가하세요.</small>
+                    `;
+                    
+                    // 실제 구글 로그인 진행
+                    auth.signInWithPopup(googleProvider)
+                        .then((result) => {
+                            // 로그인 성공 시 처리
+                            const user = result.user;
+                            
+                            // 사용자 정보 DB에 저장 또는 업데이트
+                            db.collection('users').doc(user.uid).get()
+                                .then((doc) => {
+                                    if (!doc.exists) {
+                                        // 첫 로그인 시 사용자 정보 생성
+                                        return db.collection('users').doc(user.uid).set({
+                                            email: user.email,
+                                            nickname: user.displayName || null,
+                                            photoURL: user.photoURL || null,
+                                            createdAt: firebase.firestore.FieldValue.serverTimestamp()
+                                        });
+                                    }
+                                })
+                                .then(() => {
+                                    // 로그인 완료 후 UI 업데이트
+                                    document.getElementById('auth-container').style.display = 'none';
+                                    document.getElementById('user-nickname').textContent = user.displayName || '사용자';
+                                    document.getElementById('user-info').style.display = 'flex';
+                                    
+                                    // 로그인 메시지 초기화
+                                    document.getElementById('auth-message').textContent = '';
+                                })
+                                .catch(error => {
+                                    console.error("사용자 정보 저장 오류:", error);
+                                    // 오류가 있어도 로그인은 완료
+                                    document.getElementById('auth-container').style.display = 'none';
+                                    document.getElementById('user-nickname').textContent = user.displayName || '사용자';
+                                    document.getElementById('user-info').style.display = 'flex';
+                                });
+                        })
+                        .catch((error) => {
+                            console.error('Google 로그인 오류:', error);
+                            
+                            if (error.code === 'auth/popup-closed-by-user') {
+                                document.getElementById('auth-message').textContent = '로그인 창이 닫혔습니다.';
+                            } 
+                            else if (error.code === 'auth/unauthorized-domain') {
+                                // 도메인 인증 오류일 경우 상세 안내
+                                document.getElementById('auth-message').innerHTML = `
+                                    <span style="color: #ff9800; font-weight: bold;">도메인 인증 오류</span><br>
+                                    <p style="margin: 10px 0; font-size: 14px;">
+                                        현재 도메인(${window.location.hostname})이 Firebase에 등록되지 않았습니다.
+                                    </p>
+                                    <a href="https://console.firebase.google.com/project/testgame-349b6/authentication/settings" target="_blank" class="google-btn" style="margin-top: 10px; background: #4dd637; color: black; font-size: 14px; padding: 8px;">
+                                        Firebase 콘솔에서 도메인 추가하기
+                                    </a>
+                                    <p style="margin: 10px 0; color: #ccc; font-size: 13px;">
+                                        Firebase 콘솔 > Authentication > Settings > Authorized domains에서 도메인을 추가한 후 새로고침하세요.
+                                    </p>
+                                `;
+                            }
+                            else {
+                                document.getElementById('auth-message').textContent = '구글 로그인 중 오류가 발생했습니다: ' + error.message;
+                            }
+                        });
+                });
+                
+                // 도메인 상태 표시 (Firebase 콘솔로 이동하는 버튼 추가)
+                function addFirebaseConsoleLink() {
+                    const messageElement = document.getElementById('auth-message');
+                    const currentDomain = window.location.hostname;
+                    
+                    // 로컬호스트가 아닌 경우에만 표시
+                    if (currentDomain !== 'localhost' && currentDomain !== '127.0.0.1') {
+                        messageElement.innerHTML += `
+                            <div style="margin-top: 10px; font-size: 13px; padding: 5px; background: rgba(0,0,0,0.2); border-radius: 5px;">
+                                현재 도메인: ${currentDomain}<br>
+                                <a href="https://console.firebase.google.com/project/testgame-349b6/authentication/settings" target="_blank" style="color: #4dd637; text-decoration: underline;">
+                                    Firebase 콘솔에서 도메인 추가하기
+                                </a>
+                            </div>
+                        `;
+                    }
+                }
+                
+                // 페이지 로드 시 Firebase 콘솔 링크 추가
+                setTimeout(addFirebaseConsoleLink, 1000);
+            } catch (error) {
+                console.error("구글 로그인 설정 오류:", error);
+                document.getElementById('auth-message').textContent = '로그인 기능 초기화 중 오류가 발생했습니다.';
+            }
             
             // 게임 시작
             init();
