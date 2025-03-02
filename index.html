@@ -337,11 +337,13 @@
             
             // 충돌 감지
             function checkCollision(ball) {
+                // 우주선과 공의 거리 계산
                 const dx = ball.x - player.x;
                 const dy = ball.y - player.y;
                 const distance = Math.sqrt(dx * dx + dy * dy);
                 
-                return distance < ball.radius + player.width / 2;
+                // 삼각형 충돌을 단순화하여 원으로 처리 (우주선 중심에서 15px 반경)
+                return distance < (ball.radius + 20);
             }
             
             // 그리기 함수
@@ -352,23 +354,73 @@
                 // 배경에 별 효과 추가
                 drawStars();
                 
-                // 플레이어 그리기 - 글로우 효과 추가
+                // 플레이어(우주선) 그리기
                 ctx.save();
+                
+                // 우주선 그림자 효과
                 ctx.shadowBlur = 15;
-                ctx.shadowColor = player.color;
-                ctx.fillStyle = player.color;
+                ctx.shadowColor = '#4dd637';
+                
+                // 우주선 본체 (삼각형)
+                ctx.fillStyle = '#4dd637';
                 ctx.beginPath();
-                ctx.roundRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height, 5);
+                // 우주선의 앞부분(위)
+                ctx.moveTo(player.x, player.y - player.height / 2 - 10);
+                // 우주선의 오른쪽 날개
+                ctx.lineTo(player.x + player.width / 2 + 5, player.y + player.height / 2);
+                // 우주선의 아랫부분
+                ctx.lineTo(player.x - player.width / 2 - 5, player.y + player.height / 2);
+                ctx.closePath();
                 ctx.fill();
                 
-                // 플레이어 디테일 추가
-                ctx.fillStyle = '#ffffff';
+                // 우주선 윈도우 (원)
+                ctx.fillStyle = '#85f7ff';
                 ctx.beginPath();
-                ctx.arc(player.x, player.y - 5, 3, 0, Math.PI * 2);
+                ctx.arc(player.x, player.y - 5, 5, 0, Math.PI * 2);
                 ctx.fill();
+                
+                // 우주선 날개
+                ctx.fillStyle = '#3aa424';
+                ctx.beginPath();
+                // 왼쪽 날개
+                ctx.moveTo(player.x - player.width / 2, player.y - 5);
+                ctx.lineTo(player.x - player.width * 1.2, player.y + player.height / 4);
+                ctx.lineTo(player.x - player.width / 2, player.y + player.height / 4);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 오른쪽 날개
+                ctx.beginPath();
+                ctx.moveTo(player.x + player.width / 2, player.y - 5);
+                ctx.lineTo(player.x + player.width * 1.2, player.y + player.height / 4);
+                ctx.lineTo(player.x + player.width / 2, player.y + player.height / 4);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 엔진 불꽃 효과 (애니메이션)
+                const now = Date.now();
+                const flameSize = 1 + 0.2 * Math.sin(now / 100); // 불꽃 크기 파동 효과
+                
+                ctx.fillStyle = '#ff9d00';
+                ctx.beginPath();
+                ctx.moveTo(player.x - player.width / 3, player.y + player.height / 2);
+                ctx.lineTo(player.x, player.y + player.height / 2 + 15 * flameSize);
+                ctx.lineTo(player.x + player.width / 3, player.y + player.height / 2);
+                ctx.closePath();
+                ctx.fill();
+                
+                // 더 밝은 내부 불꽃
+                ctx.fillStyle = '#ffef00';
+                ctx.beginPath();
+                ctx.moveTo(player.x - player.width / 6, player.y + player.height / 2);
+                ctx.lineTo(player.x, player.y + player.height / 2 + 10 * flameSize);
+                ctx.lineTo(player.x + player.width / 6, player.y + player.height / 2);
+                ctx.closePath();
+                ctx.fill();
+                
                 ctx.restore();
                 
-                // 공 그리기 - 글로우 효과와 그라데이션 추가
+                // 공 그리기 - 기존 코드 유지
                 balls.forEach(ball => {
                     ctx.save();
                     const gradient = ctx.createRadialGradient(
