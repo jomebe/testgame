@@ -53,6 +53,39 @@
             cursor: pointer;
             border-radius: 5px;
         }
+        #leaderboard {
+            background-color: rgba(0, 0, 0, 0.7);
+            color: white;
+            padding: 15px;
+            border-radius: 5px;
+            margin-top: 15px;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        #leaderboard h3 {
+            margin-top: 0;
+            text-align: center;
+            color: #4CAF50;
+        }
+        .leaderboard-item {
+            display: flex;
+            justify-content: space-between;
+            padding: 5px 0;
+            border-bottom: 1px solid #444;
+        }
+        #name-input {
+            margin: 10px 0;
+            padding: 8px;
+            width: 100%;
+            box-sizing: border-box;
+        }
+        #submit-score {
+            background-color: #2196F3;
+        }
+        /* 디버깅용 테두리 */
+        .debug-border {
+            border: 1px solid red !important;
+        }
     </style>
 </head>
 <body>
@@ -62,155 +95,666 @@
         <div id="game-over">
             <p>게임 오버!</p>
             <p id="final-score">최종 점수: 0</p>
+            <input type="text" id="name-input" placeholder="닉네임을 입력하세요" maxlength="15">
+            <button id="submit-score">점수 등록하기</button>
             <button id="restart-button">다시 시작</button>
+        </div>
+        <div id="leaderboard">
+            <div style="display: flex; justify-content: space-between; align-items: center;">
+                <h3>최고 점수</h3>
+                <button id="toggle-offline" style="background-color: #555; padding: 5px 10px; font-size: 12px;">
+                    오프라인 모드
+                </button>
+            </div>
+            <div id="leaderboard-items"></div>
         </div>
     </div>
 
+    <!-- Firebase SDK 업데이트 -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
     <script>
-        // 캔버스 설정
-        const canvas = document.getElementById('gameCanvas');
-        const ctx = canvas.getContext('2d');
-        
-        // 게임 변수
-        let score = 0;
-        let gameOver = false;
-        const player = {
-            x: canvas.width / 2,
-            y: canvas.height - 30,
-            width: 30,
-            height: 30,
-            color: '#5DADE2',
-            speed: 5
+        // Firebase 초기화
+        const firebaseConfig = {
+            apiKey: "AIzaSyDvpN35A5K4FPWfCJVGSa6OV_KRjH6cpSQ",
+            authDomain: "testgame-349b6.firebaseapp.com",
+            projectId: "testgame-349b6",
+            storageBucket: "testgame-349b6.appspot.com", // .firebasestorage.app에서 .appspot.com으로 수정
+            messagingSenderId: "123634890932",
+            appId: "1:123634890932:web:ea8d5d3b3dfd133e963fe1",
+            measurementId: "G-P1ZXB7L57W"
         };
-        
-        let balls = [];
-        let animationId;
-        let lastBallSpawn = 0;
-        let spawnInterval = 1000; // 1초마다 공 생성
-        let difficulty = 1;
-        
-        // 마우스 위치 추적
-        let mouseX = player.x;
-        
-        // 게임 초기화
-        function init() {
-            score = 0;
-            gameOver = false;
-            balls = [];
-            difficulty = 1;
-            player.x = canvas.width / 2;
-            document.getElementById('score').textContent = '점수: 0';
-            document.getElementById('game-over').style.display = 'none';
+
+        // Firebase 초기화 수정
+        try {
+            firebase.initializeApp(firebaseConfig);
+            const db = firebase.firestore();
+            console.log("Firebase 초기화 성공");
             
-            // 게임 루프 시작
-            lastBallSpawn = Date.now();
-            animate();
-        }
-        
-        // 공 생성
-        function createBall() {
-            const ballSize = Math.random() * 20 + 10; // 10-30 사이 크기
-            const ball = {
-                x: Math.random() * (canvas.width - ballSize * 2) + ballSize,
-                y: -ballSize,
-                radius: ballSize,
-                color: getRandomColor(),
-                speedY: (Math.random() * 2 + 1) * difficulty
-            };
-            balls.push(ball);
-        }
-        
-        // 랜덤 색상 생성
-        function getRandomColor() {
-            const colors = ['#E74C3C', '#9B59B6', '#F1C40F', '#2ECC71', '#F39C12'];
-            return colors[Math.floor(Math.random() * colors.length)];
-        }
-        
-        // 충돌 감지
-        function checkCollision(ball) {
-            const dx = ball.x - player.x;
-            const dy = ball.y - player.y;
-            const distance = Math.sqrt(dx * dx + dy * dy);
-            
-            return distance < ball.radius + player.width / 2;
-        }
-        
-        // 그리기 함수
-        function draw() {
-            // 캔버스 지우기
-            ctx.clearRect(0, 0, canvas.width, canvas.height);
-            
-            // 플레이어 그리기
-            ctx.fillStyle = player.color;
-            ctx.beginPath();
-            ctx.roundRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height, 5);
-            ctx.fill();
-            
-            // 공 그리기
-            balls.forEach(ball => {
-                ctx.fillStyle = ball.color;
-                ctx.beginPath();
-                ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
-                ctx.fill();
+            // Firestore 설정 - 병합 옵션 추가 (경고 해결)
+            db.settings({
+                cacheSizeBytes: firebase.firestore.CACHE_SIZE_UNLIMITED,
+                ignoreUndefinedProperties: true,
+                merge: true  // 경고 해결을 위해 추가
             });
-        }
-        
-        // 업데이트 함수
-        function update() {
-            // 플레이어 마우스 따라가기
-            player.x += (mouseX - player.x) * 0.1;
             
-            // 공 움직이기 및 충돌 체크
-            for (let i = balls.length - 1; i >= 0; i--) {
-                balls[i].y += balls[i].speedY;
+            // 오프라인 지원 활성화 - 권장 방법으로 수정
+            try {
+                // 이전 방식 대신 캐시 설정 사용
+                db.enablePersistence({
+                    synchronizeTabs: true
+                }).catch(function(err) {
+                    console.log("오프라인 지원 활성화 오류:", err);
+                });
+            } catch (e) {
+                console.log("지속성 설정 오류:", e);
+            }
+            
+            // 캔버스 설정
+            const canvas = document.getElementById('gameCanvas');
+            const ctx = canvas.getContext('2d');
+            
+            // 게임 변수
+            let score = 0;
+            let gameOver = false;
+            const player = {
+                x: canvas.width / 2,
+                y: canvas.height - 30,
+                width: 30,
+                height: 30,
+                color: '#5DADE2',
+                speed: 5
+            };
+            
+            let balls = [];
+            let animationId;
+            let lastBallSpawn = 0;
+            let spawnInterval = 1000; // 1초마다 공 생성
+            let difficulty = 1;
+            
+            // 마우스 위치 추적
+            let mouseX = player.x;
+            
+            // 게임 초기화
+            function init() {
+                score = 0;
+                gameOver = false;
+                balls = [];
+                difficulty = 1;
+                player.x = canvas.width / 2;
+                document.getElementById('score').textContent = '점수: 0';
+                document.getElementById('game-over').style.display = 'none';
                 
-                // 공이 화면 아래로 나가면 제거하고 점수 추가
-                if (balls[i].y > canvas.height + balls[i].radius) {
-                    balls.splice(i, 1);
-                    score++;
-                    document.getElementById('score').textContent = `점수: ${score}`;
+                // 게임 루프 시작
+                lastBallSpawn = Date.now();
+                animate();
+                
+                // 리더보드 불러오기
+                loadLeaderboard();
+            }
+            
+            // 공 생성
+            function createBall() {
+                const ballSize = Math.random() * 20 + 10; // 10-30 사이 크기
+                const ball = {
+                    x: Math.random() * (canvas.width - ballSize * 2) + ballSize,
+                    y: -ballSize,
+                    radius: ballSize,
+                    color: getRandomColor(),
+                    speedY: (Math.random() * 2 + 1) * difficulty
+                };
+                balls.push(ball);
+            }
+            
+            // 랜덤 색상 생성
+            function getRandomColor() {
+                const colors = ['#E74C3C', '#9B59B6', '#F1C40F', '#2ECC71', '#F39C12'];
+                return colors[Math.floor(Math.random() * colors.length)];
+            }
+            
+            // 충돌 감지
+            function checkCollision(ball) {
+                const dx = ball.x - player.x;
+                const dy = ball.y - player.y;
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                
+                return distance < ball.radius + player.width / 2;
+            }
+            
+            // 그리기 함수
+            function draw() {
+                // 캔버스 지우기
+                ctx.clearRect(0, 0, canvas.width, canvas.height);
+                
+                // 플레이어 그리기
+                ctx.fillStyle = player.color;
+                ctx.beginPath();
+                ctx.roundRect(player.x - player.width / 2, player.y - player.height / 2, player.width, player.height, 5);
+                ctx.fill();
+                
+                // 공 그리기
+                balls.forEach(ball => {
+                    ctx.fillStyle = ball.color;
+                    ctx.beginPath();
+                    ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+                    ctx.fill();
+                });
+            }
+            
+            // 업데이트 함수
+            function update() {
+                // 플레이어 마우스 따라가기
+                player.x += (mouseX - player.x) * 0.1;
+                
+                // 공 움직이기 및 충돌 체크
+                for (let i = balls.length - 1; i >= 0; i--) {
+                    balls[i].y += balls[i].speedY;
                     
-                    // 점수에 따라 난이도 증가
-                    difficulty = 1 + Math.floor(score / 10) * 0.2;
-                    spawnInterval = Math.max(300, 1000 - score * 10);
+                    // 공이 화면 아래로 나가면 제거하고 점수 추가
+                    if (balls[i].y > canvas.height + balls[i].radius) {
+                        balls.splice(i, 1);
+                        score++;
+                        // 점수 표시 전에 NaN 확인
+                        document.getElementById('score').textContent = `점수: ${isNaN(score) ? 0 : score}`;
+                        
+                        // 점수에 따라 난이도 증가
+                        difficulty = 1 + Math.floor((isNaN(score) ? 0 : score) / 10) * 0.2;
+                        spawnInterval = Math.max(300, 1000 - (isNaN(score) ? 0 : score) * 10);
+                    }
+                    // 플레이어와 충돌 체크
+                    else if (checkCollision(balls[i])) {
+                        gameOver = true;
+                        // 최종 점수 표시 전에 NaN 확인
+                        document.getElementById('final-score').textContent = `최종 점수: ${isNaN(score) ? 0 : score}`;
+                        document.getElementById('game-over').style.display = 'block';
+                        cancelAnimationFrame(animationId);
+                        return;
+                    }
                 }
-                // 플레이어와 충돌 체크
-                else if (checkCollision(balls[i])) {
-                    gameOver = true;
-                    document.getElementById('final-score').textContent = `최종 점수: ${score}`;
-                    document.getElementById('game-over').style.display = 'block';
-                    cancelAnimationFrame(animationId);
+                
+                // 새로운 공 생성
+                const now = Date.now();
+                if (now - lastBallSpawn > spawnInterval) {
+                    createBall();
+                    lastBallSpawn = now;
+                }
+            }
+            
+            // 애니메이션 루프
+            function animate() {
+                if (!gameOver) {
+                    animationId = requestAnimationFrame(animate);
+                    update();
+                    draw();
+                }
+            }
+            
+            // 이벤트 리스너
+            canvas.addEventListener('mousemove', (e) => {
+                const rect = canvas.getBoundingClientRect();
+                mouseX = e.clientX - rect.left;
+            });
+            
+            document.getElementById('restart-button').addEventListener('click', init);
+            
+            // 리더보드 불러오기 함수 수정
+            function loadLeaderboard() {
+                const leaderboardItems = document.getElementById('leaderboard-items');
+                leaderboardItems.innerHTML = `
+                    <div style="text-align: center; padding: 10px;">
+                        <p>리더보드 로딩 중...</p>
+                        <div style="width: 40px; height: 40px; border: 5px solid #333; 
+                                    border-top: 5px solid #4CAF50; border-radius: 50%; 
+                                    margin: 10px auto; animation: spin 1s linear infinite;"></div>
+                    </div>
+                `;
+                
+                // 스타일 추가
+                if (!document.getElementById('spinner-style')) {
+                    const style = document.createElement('style');
+                    style.id = 'spinner-style';
+                    style.textContent = `@keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }`;
+                    document.head.appendChild(style);
+                }
+                
+                try {
+                    db.collection('scores')
+                        .orderBy('score', 'desc')
+                        .limit(10)
+                        .get()
+                        .then((querySnapshot) => {
+                            leaderboardItems.innerHTML = '';
+                            if (querySnapshot.empty) {
+                                leaderboardItems.innerHTML = '<p>등록된 점수가 없습니다.</p>';
+                                return;
+                            }
+                            
+                            querySnapshot.forEach((doc, index) => {
+                                const data = doc.data();
+                                const item = document.createElement('div');
+                                item.className = 'leaderboard-item';
+                                
+                                // 순위 표시 제거, 이름만 표시
+                                const nameText = String(data.name || '익명');
+                                const scoreValue = isNaN(Number(data.score)) ? 0 : Number(data.score);
+                                
+                                item.innerHTML = '';
+                                
+                                const nameSpan = document.createElement('span');
+                                nameSpan.textContent = nameText;  // 순위(N.) 제거
+                                
+                                const scoreSpan = document.createElement('span');
+                                scoreSpan.textContent = scoreValue + '점';
+                                
+                                item.appendChild(nameSpan);
+                                item.appendChild(scoreSpan);
+                                
+                                leaderboardItems.appendChild(item);
+                            });
+                        })
+                        .catch((error) => {
+                            console.error('리더보드 로딩 오류:', error);
+                            
+                            if (error.code === 'permission-denied') {
+                                leaderboardItems.innerHTML = `
+                                    <p style="color: #ff6b6b;">Firebase 권한 오류</p>
+                                    <p style="font-size: 0.9em;">Firebase 콘솔에서 보안 규칙을 다음과 같이 변경해주세요:</p>
+                                    <pre style="background: #333; padding: 10px; font-size: 0.8em; overflow: auto;">
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    match /scores/{document=**} {
+      allow read, write: if true;
+    }
+  }
+}
+                                    </pre>
+                                    <p style="font-size: 0.8em;">그동안 로컬 리더보드를 사용합니다:</p>
+                                `;
+                                loadLocalLeaderboard();
+                            } else {
+                                leaderboardItems.innerHTML = '<p>리더보드를 불러오는 중 오류가 발생했습니다.</p>';
+                            }
+                        });
+                } catch (error) {
+                    console.error('Firestore 쿼리 실행 오류:', error);
+                    leaderboardItems.innerHTML = '<p>데이터베이스 연결에 문제가 있습니다.</p>';
+                    loadLocalLeaderboard();
+                }
+            }
+            
+            // 점수 저장 함수 수정 - 중복 이름 체크 추가
+            function saveScore(name, score) {
+                if (!name.trim()) {
+                    alert('닉네임을 입력해주세요!');
                     return;
                 }
+                
+                // 점수 확실하게 숫자로 변환 후 유효성 검사
+                const scoreNum = Number(score);
+                if (isNaN(scoreNum)) {
+                    alert('유효하지 않은 점수입니다.');
+                    return;
+                }
+                
+                const trimmedName = String(name.trim());
+                
+                try {
+                    // 로컬 저장소에서 이름 중복 체크
+                    let localScores = [];
+                    try {
+                        localScores = JSON.parse(localStorage.getItem('ballGameScores') || '[]');
+                        if (!Array.isArray(localScores)) {
+                            localScores = [];
+                        }
+                        
+                        // 로컬 저장소에서 이름 중복 체크
+                        const nameExists = localScores.some(entry => 
+                            String(entry.name).toLowerCase() === trimmedName.toLowerCase()
+                        );
+                        
+                        if (nameExists) {
+                            alert('이미 사용 중인 닉네임입니다. 다른 닉네임을 사용해주세요.');
+                            return;
+                        }
+                    } catch (e) {
+                        console.error('로컬 스토리지 파싱 오류:', e);
+                        localScores = [];
+                    }
+                    
+                    // Firebase에서 이름 중복 체크
+                    db.collection('scores')
+                        .where('name', '==', trimmedName)
+                        .get()
+                        .then((querySnapshot) => {
+                            if (!querySnapshot.empty) {
+                                alert('이미 사용 중인 닉네임입니다. 다른 닉네임을 사용해주세요.');
+                                return;
+                            }
+                            
+                            // 중복이 없으면 저장 진행
+                            const scoreData = {
+                                name: trimmedName,
+                                score: scoreNum,
+                                timestamp: new Date().toISOString()
+                            };
+                            
+                            // 로컬 백업 저장
+                            localScores.push(scoreData);
+                            localStorage.setItem('ballGameScores', JSON.stringify(localScores));
+                            
+                            // Firestore에 저장 시도
+                            db.collection('scores').add({
+                                name: trimmedName,
+                                score: scoreNum,
+                                timestamp: firebase.firestore.FieldValue.serverTimestamp()
+                            })
+                            .then(() => {
+                                alert('점수가 저장되었습니다!');
+                                document.getElementById('name-input').value = '';
+                                loadLeaderboard();
+                            })
+                            .catch((error) => {
+                                console.error('점수 저장 오류:', error);
+                                
+                                if (error.code === 'permission-denied') {
+                                    alert('권한 오류: Firebase 보안 규칙을 확인해주세요. 점수는 로컬에 저장되었습니다.');
+                                    loadLocalLeaderboard();
+                                } else {
+                                    alert('점수 저장 중 오류가 발생했습니다. 오류: ' + error.message);
+                                }
+                            });
+                        })
+                        .catch((error) => {
+                            console.error('이름 중복 체크 오류:', error);
+                            alert('이름 중복 체크 중 오류가 발생했습니다. 오프라인 모드로 전환합니다.');
+                            
+                            // Firebase 접근 오류 시 로컬 저장소만 확인
+                            saveScoreLocally(trimmedName, scoreNum, localScores);
+                        });
+                } catch (error) {
+                    console.error('Firestore 저장 오류:', error);
+                    alert('데이터베이스 연결에 문제가 있습니다. 로컬 저장으로 전환합니다.');
+                    
+                    // Firebase 초기화 오류 시 로컬 저장 함수 호출
+                    saveScoreLocally(trimmedName, scoreNum, []);
+                }
             }
             
-            // 새로운 공 생성
-            const now = Date.now();
-            if (now - lastBallSpawn > spawnInterval) {
-                createBall();
-                lastBallSpawn = now;
+            // 로컬 저장 전용 함수 추가
+            function saveScoreLocally(name, score, existingScores) {
+                // 로컬에서만 이름 중복 체크
+                let localScores = existingScores || [];
+                if (!Array.isArray(localScores)) {
+                    try {
+                        localScores = JSON.parse(localStorage.getItem('ballGameScores') || '[]');
+                        if (!Array.isArray(localScores)) {
+                            localScores = [];
+                        }
+                    } catch (e) {
+                        localScores = [];
+                    }
+                }
+                
+                // 이름 중복 체크
+                const nameExists = localScores.some(entry => 
+                    String(entry.name).toLowerCase() === name.toLowerCase()
+                );
+                
+                if (nameExists) {
+                    alert('이미 사용 중인 닉네임입니다. 다른 닉네임을 사용해주세요.');
+                    return;
+                }
+                
+                // 점수 저장
+                const scoreData = {
+                    name: name,
+                    score: score,
+                    timestamp: new Date().toISOString()
+                };
+                
+                localScores.push(scoreData);
+                localStorage.setItem('ballGameScores', JSON.stringify(localScores));
+                
+                alert('오프라인 모드: 점수가 로컬에 저장되었습니다!');
+                document.getElementById('name-input').value = '';
+                loadLocalLeaderboard();
+            }
+            
+            // 점수 제출 버튼 리스너 추가
+            document.getElementById('submit-score').addEventListener('click', () => {
+                const name = document.getElementById('name-input').value;
+                // NaN 체크 추가
+                const finalScore = isNaN(score) ? 0 : score;
+                saveScore(name, finalScore);
+            });
+            
+            // 오프라인 모드 전환 버튼 이벤트 리스너
+            document.getElementById('toggle-offline').addEventListener('click', function() {
+                const useLocalStorage = localStorage.getItem('useLocalLeaderboard') === 'true';
+                localStorage.setItem('useLocalLeaderboard', !useLocalStorage);
+                
+                if (!useLocalStorage) {
+                    this.textContent = '온라인 모드';
+                    this.style.backgroundColor = '#2196F3';
+                    loadLocalLeaderboard();
+                    alert('오프라인 모드로 전환되었습니다. 로컬 저장소를 사용합니다.');
+                } else {
+                    this.textContent = '오프라인 모드';
+                    this.style.backgroundColor = '#555';
+                    loadLeaderboard();
+                    alert('온라인 모드로 전환되었습니다. Firebase를 사용합니다.');
+                }
+            });
+            
+            // 초기 모드 설정
+            window.addEventListener('DOMContentLoaded', function() {
+                const useLocalStorage = localStorage.getItem('useLocalLeaderboard') === 'true';
+                const btn = document.getElementById('toggle-offline');
+                if (useLocalStorage) {
+                    btn.textContent = '온라인 모드';
+                    btn.style.backgroundColor = '#2196F3';
+                    loadLocalLeaderboard();
+                }
+            });
+            
+            // 게임 시작
+            init();
+        } catch (error) {
+            console.error("Firebase 초기화 오류:", error);
+            // Firebase 연결 실패 시 로컬 리더보드 사용
+            const localLeaderboard = [];
+            
+            function loadLeaderboard() {
+                const leaderboardItems = document.getElementById('leaderboard-items');
+                leaderboardItems.innerHTML = '<p>오프라인 모드 - 로컬 리더보드</p>';
+                
+                if (localLeaderboard.length === 0) {
+                    leaderboardItems.innerHTML += '<p>등록된 점수가 없습니다.</p>';
+                    return;
+                }
+                
+                localLeaderboard.sort((a, b) => b.score - a.score);
+                
+                localLeaderboard.forEach((entry, index) => {
+                    if (index < 10) { // 상위 10개만 표시
+                        const item = document.createElement('div');
+                        item.className = 'leaderboard-item';
+                        
+                        // 순위 텍스트 제거
+                        const nameSpan = document.createElement('span');
+                        nameSpan.textContent = entry.name || '익명';  // 순위(N.) 제거
+                        
+                        const scoreSpan = document.createElement('span');
+                        scoreSpan.textContent = (isNaN(entry.score) ? 0 : entry.score) + '점';
+                        
+                        item.appendChild(nameSpan);
+                        item.appendChild(scoreSpan);
+                        
+                        leaderboardItems.appendChild(item);
+                    }
+                });
+            }
+            
+            function saveScore(name, score) {
+                if (!name.trim()) {
+                    alert('닉네임을 입력해주세요!');
+                    return;
+                }
+                
+                const trimmedName = String(name.trim());
+                const scoreNum = Number(score);
+                
+                // 로컬에서 이름 중복 체크
+                let localScores = [];
+                try {
+                    localScores = JSON.parse(localStorage.getItem('ballGameScores') || '[]');
+                    if (!Array.isArray(localScores)) {
+                        localScores = [];
+                    }
+                } catch (e) {
+                    localScores = [];
+                }
+                
+                // 이름 중복 체크
+                const nameExists = localScores.some(entry => 
+                    String(entry.name).toLowerCase() === trimmedName.toLowerCase()
+                );
+                
+                if (nameExists) {
+                    alert('이미 사용 중인 닉네임입니다. 다른 닉네임을 사용해주세요.');
+                    return;
+                }
+                
+                localLeaderboard.push({
+                    name: trimmedName,
+                    score: scoreNum,
+                    timestamp: new Date().toISOString()
+                });
+                
+                // 로컬 스토리지에도 저장
+                localScores.push({
+                    name: trimmedName,
+                    score: scoreNum,
+                    timestamp: new Date().toISOString()
+                });
+                localStorage.setItem('ballGameScores', JSON.stringify(localScores));
+                
+                alert('오프라인 모드: 점수가 로컬에 저장되었습니다!');
+                document.getElementById('name-input').value = '';
+                loadLeaderboard();
             }
         }
-        
-        // 애니메이션 루프
-        function animate() {
-            if (!gameOver) {
-                animationId = requestAnimationFrame(animate);
-                update();
-                draw();
+
+        // loadLocalLeaderboard 함수 개선
+        function loadLocalLeaderboard() {
+            console.log("로컬 리더보드 로딩 시작");
+            const leaderboardItems = document.getElementById('leaderboard-items');
+            leaderboardItems.innerHTML = '<p>로컬 리더보드</p>';
+            
+            try {
+                let localScores = [];
+                try {
+                    const rawData = localStorage.getItem('ballGameScores');
+                    console.log("로컬 스토리지 데이터:", rawData);
+                    
+                    if (!rawData) {
+                        console.log("로컬 스토리지에 데이터 없음");
+                        localScores = [];
+                    } else {
+                        localScores = JSON.parse(rawData);
+                        console.log("파싱된 데이터:", localScores);
+                        
+                        if (!Array.isArray(localScores)) {
+                            console.log("데이터가 배열이 아님, 빈 배열로 초기화");
+                            localScores = [];
+                        }
+                    }
+                } catch (e) {
+                    console.error('로컬 스토리지 파싱 오류:', e);
+                    localScores = [];
+                }
+                
+                if (localScores.length === 0) {
+                    console.log("점수 데이터 없음");
+                    leaderboardItems.innerHTML += '<p>등록된 점수가 없습니다.</p>';
+                    return;
+                }
+                
+                console.log("필터링 전 점수 데이터:", localScores);
+                
+                // 더 엄격한 데이터 필터링
+                localScores = localScores.filter(entry => {
+                    if (!entry || typeof entry !== 'object') {
+                        console.log("유효하지 않은 항목 제거:", entry);
+                        return false;
+                    }
+                    
+                    if (!entry.name) {
+                        console.log("이름 없는 항목:", entry);
+                        entry.name = '익명';
+                    }
+                    
+                    // 점수를 명시적으로 숫자로 변환
+                    const numScore = Number(entry.score);
+                    if (isNaN(numScore)) {
+                        console.log("유효하지 않은 점수 감지:", entry.score);
+                        entry.score = 0;
+                        return false; // 유효하지 않은 점수는 제외
+                    }
+                    
+                    // 점수 필드를 명시적으로 숫자로 저장
+                    entry.score = numScore;
+                    return true;
+                });
+                
+                console.log("필터링 후 점수 데이터:", localScores);
+                
+                // 점수 내림차순 정렬
+                localScores.sort((a, b) => Number(b.score) - Number(a.score));
+                console.log("정렬된 데이터:", localScores);
+                
+                // 리더보드 초기화
+                leaderboardItems.innerHTML = '<p>로컬 리더보드</p>';
+                
+                // 상위 10개만 표시
+                for (let i = 0; i < Math.min(localScores.length, 10); i++) {
+                    const entry = localScores[i];
+                    const item = document.createElement('div');
+                    item.className = 'leaderboard-item';
+                    
+                    // 순위 텍스트 제거
+                    const name = String(entry.name || '익명');
+                    let score = 0;
+                    try {
+                        score = Number(entry.score);
+                        if (isNaN(score)) score = 0;
+                    } catch (e) {
+                        score = 0;
+                    }
+                    
+                    // 순위 텍스트 제거하고 이름만 표시
+                    const nameSpan = document.createElement('span');
+                    nameSpan.textContent = name;  // 순위(N.) 제거
+                    
+                    const scoreSpan = document.createElement('span');
+                    scoreSpan.textContent = score + '점';
+                    
+                    item.appendChild(nameSpan);
+                    item.appendChild(scoreSpan);
+                    
+                    leaderboardItems.appendChild(item);
+                }
+                
+                // 정리된 데이터로 로컬 스토리지 업데이트
+                localStorage.setItem('ballGameScores', JSON.stringify(localScores));
+                console.log("로컬 리더보드 로딩 완료");
+            } catch (error) {
+                console.error('로컬 리더보드 처리 오류:', error);
+                leaderboardItems.innerHTML = '<p>로컬 리더보드</p><p>로컬 데이터 처리 중 오류가 발생했습니다.</p>';
             }
         }
-        
-        // 이벤트 리스너
-        canvas.addEventListener('mousemove', (e) => {
-            const rect = canvas.getBoundingClientRect();
-            mouseX = e.clientX - rect.left;
-        });
-        
-        document.getElementById('restart-button').addEventListener('click', init);
-        
-        // 게임 시작
-        init();
     </script>
 </body>
 </html>
